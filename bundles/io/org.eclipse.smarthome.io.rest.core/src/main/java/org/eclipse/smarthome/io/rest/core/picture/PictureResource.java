@@ -7,7 +7,6 @@
  */
 package org.eclipse.smarthome.io.rest.core.picture;
 
-import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -18,10 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
-
-import com.google.common.collect.Lists;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,13 +29,12 @@ import io.swagger.annotations.ApiResponses;
  *
  * @author Denis Lachartre - Initial contribution
  */
-@Path(PictureResource.PATH_CONFIG_DESCRIPTIONS)
-@RolesAllowed({ Role.ADMIN })
-@Api(value = PictureResource.PATH_CONFIG_DESCRIPTIONS)
+@Path(PictureResource.PATH_PICTURE)
+@Api(value = PictureResource.PATH_PICTURE)
 public class PictureResource implements SatisfiableRESTResource {
 
     /** The URI path to this resource */
-    public static final String PATH_CONFIG_DESCRIPTIONS = "pictures";
+    public static final String PATH_PICTURE = "pictures";
 
     @Context
     UriInfo uriInfo;
@@ -49,28 +44,30 @@ public class PictureResource implements SatisfiableRESTResource {
     @ApiOperation(value = "Gets all pictures.")
     @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
     public Response getAll() {
-        Object pictures = "oui";
-        return Response.ok(Lists.newArrayList(pictures)).build();
+        Object response = "Toutes les images";
+        return Response.ok(response).build();
     }
 
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Stores a pictures.")
+    @Path("/{pictures: [a-zA-Z_0-9]*}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Item not found") })
     public Response post() {
-        Object pictures = "done";
-        return Response.ok(Lists.newArrayList(pictures)).build();
+        Object response = "done";
+        return Response.ok(response).build();
     }
 
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Deletes a pictures.")
+    @Path("/{pictures: [a-zA-Z_0-9]*}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Item not found") })
     public Response delete() {
-        Object pictures = "done";
-        return Response.ok(Lists.newArrayList(pictures)).build();
+        Object response = "done";
+        return Response.ok(response).build();
     }
 
     @Override
