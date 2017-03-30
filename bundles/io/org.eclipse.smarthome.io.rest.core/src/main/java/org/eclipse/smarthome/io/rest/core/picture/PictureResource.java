@@ -7,12 +7,16 @@
  */
 package org.eclipse.smarthome.io.rest.core.picture;
 
+import java.io.File;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -21,6 +25,7 @@ import org.eclipse.smarthome.io.rest.SatisfiableRESTResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
@@ -51,11 +56,19 @@ public class PictureResource implements SatisfiableRESTResource {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Stores a pictures.")
-    @Path("/{pictures: [a-zA-Z_0-9]*}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Item not found") })
-    public Response post() {
-        Object response = "done";
+            @ApiResponse(code = 404, message = "Image not found") })
+    public Response create(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
+            @ApiParam(value = "thing data", required = true) String data) {
+        Object response = "Picture added";
+
+        // create the pictures directory
+        File directory;
+        directory = new java.io.File("./../../../smarthome/distribution/smarthome/conf/pictures");
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
         return Response.ok(response).build();
     }
 
