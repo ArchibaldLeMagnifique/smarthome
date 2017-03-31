@@ -55,26 +55,38 @@ public class PictureResource implements SatisfiableRESTResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @RolesAllowed({ Role.USER, Role.ADMIN })
-    @ApiOperation(value = "Gets all pictures.")
+    @ApiOperation(value = "Gets all pictures name.")
     @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
     public Response getAll() {
-        Object response = "Toutes les images";
+        String response = "";
+        for (final File f : new java.io.File(
+                "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures").listFiles()) {
+            if (f != null && f.getName().toLowerCase().endsWith(".jpg")) {
+                try {
+                    ImageIO.read(f);
+                    response += f.getName() + "\n";
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
         return Response.ok(response).build();
     }
 
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces("image/jpg")
     @RolesAllowed({ Role.USER, Role.ADMIN })
     @ApiOperation(value = "Gets one specific picture.")
-    @Path("/{imageName}")
+    @Path("/{pictures}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Picture not found") })
-    public Response getOne(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
-            @PathParam("imageName") @ApiParam(value = "imageName") String imageName) {
+    public Response getOne(@PathParam("pictures") @ApiParam(value = "pictures") String pictures) {
         BufferedImage bufferedImage = null;
         try {
             bufferedImage = ImageIO.read(new java.io.File(
-                    "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures/" + (imageName)));
+                    "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures/" + (pictures)));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
             ImageIO.write(bufferedImage, "jpg", baos);
@@ -91,6 +103,7 @@ public class PictureResource implements SatisfiableRESTResource {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Stores a pictures.")
+    @Path("/{pictures}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Picture not found") })
     public Response create(
@@ -126,13 +139,26 @@ public class PictureResource implements SatisfiableRESTResource {
 
     @DELETE
     @Produces(MediaType.TEXT_PLAIN)
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @ApiOperation(value = "Deletes a pictures.")
-    @Path("/{pictures: [a-zA-Z_0-9]*}")
+    @Path("/{pictures}")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Item not found") })
-    public Response delete() {
-        Object response = "done";
-        return Response.ok(response).build();
+    public Response delete(@PathParam("pictures") @ApiParam(value = "pictures") String pictures) {
+        try {
+            File file = new java.io.File(
+                    "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures/" + pictures
+                            + ".jpg");
+            if (!file.exists()) {
+                return Response.ok(pictures + " doesn't exist.").build();
+            }
+            file.delete();
+            System.out.println(file.getAbsolutePath());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok("Error while deleting " + pictures).build();
+        }
+        return Response.ok(pictures + " has been deleted.").build();
     }
 
     @Override
