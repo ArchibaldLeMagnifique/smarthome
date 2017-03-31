@@ -23,7 +23,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -61,6 +60,7 @@ public class PictureResource implements SatisfiableRESTResource {
         String response = "";
         for (final File f : new java.io.File(
                 "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures").listFiles()) {
+            // search for every jpg in the directory
             if (f != null && f.getName().toLowerCase().endsWith(".jpg")) {
                 try {
                     ImageIO.read(f);
@@ -69,7 +69,9 @@ public class PictureResource implements SatisfiableRESTResource {
                     e.printStackTrace();
                 }
             }
-
+        }
+        if (response == "") {
+            return Response.status(Response.Status.NOT_FOUND).entity("No picture in directory.").build();
         }
 
         return Response.ok(response).build();
@@ -80,9 +82,8 @@ public class PictureResource implements SatisfiableRESTResource {
     @RolesAllowed({ Role.USER, Role.ADMIN })
     @ApiOperation(value = "Gets one specific picture.")
     @Path("/{pictures}")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Picture not found") })
-    public Response getOne(@PathParam("pictures") @ApiParam(value = "pictures") String pictures) {
+    @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
+    public Response getOne(@PathParam("pictures") @ApiParam(value = "name of the picture + .jpg") String pictures) {
         BufferedImage bufferedImage = null;
         try {
             bufferedImage = ImageIO.read(new java.io.File(
@@ -95,20 +96,18 @@ public class PictureResource implements SatisfiableRESTResource {
             return Response.ok(imageBytes).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok("Error while loading picture").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error while loading picture.")
+                    .build();
         }
-        // return Response.ok("Unknown error occurred.").build();
     }
 
     @POST
     @Produces(MediaType.TEXT_PLAIN)
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @ApiOperation(value = "Stores a pictures.")
-    @Path("/{pictures}")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Picture not found") })
-    public Response create(
-            @HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "name", required = true) String name,
-            @ApiParam(value = "data", required = true) byte[] data) {
+    @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
+    public Response create(@HeaderParam("name") @ApiParam(value = "name of the picture", required = true) String name,
+            @ApiParam(value = "datas of the picture in byte array", required = true) byte[] data) {
         // create the pictures directory
         File directory;
         directory = new java.io.File("./../../../openhab-distro/features/distro-resources/src/main/resources/pictures");
@@ -121,9 +120,9 @@ public class PictureResource implements SatisfiableRESTResource {
                 "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures/" + name + ".jpg");
 
         if (photo.exists()) {
-            return Response.ok("A picture with same name already exists.").build();
+            return Response.status(Response.Status.CONFLICT).entity("A picture with same name already exists.").build();
         }
-
+        // store it
         FileOutputStream fos;
         try {
             fos = new FileOutputStream(photo.getPath());
@@ -142,21 +141,20 @@ public class PictureResource implements SatisfiableRESTResource {
     @RolesAllowed({ Role.USER, Role.ADMIN })
     @ApiOperation(value = "Deletes a pictures.")
     @Path("/{pictures}")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Item not found") })
+    @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
     public Response delete(@PathParam("pictures") @ApiParam(value = "pictures") String pictures) {
         try {
             File file = new java.io.File(
                     "./../../../openhab-distro/features/distro-resources/src/main/resources/pictures/" + pictures
                             + ".jpg");
             if (!file.exists()) {
-                return Response.ok(pictures + " doesn't exist.").build();
+                return Response.status(Response.Status.NOT_FOUND).entity(pictures + " doesn't exist.").build();
             }
             file.delete();
-            System.out.println(file.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok("Error while deleting " + pictures).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error while deleting " + pictures)
+                    .build();
         }
         return Response.ok(pictures + " has been deleted.").build();
     }
