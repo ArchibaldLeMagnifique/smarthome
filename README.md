@@ -1,3 +1,6 @@
+Lien vers le dépot de l'application android : https://github.com/Savarious/openhab.android
+
+
 # Eclipse SmartHome Build Instructions
 
 Thanks for your interest in the Eclipse SmartHome project!
